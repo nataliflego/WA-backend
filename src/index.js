@@ -1,12 +1,49 @@
-import express from 'express'
+import dotenv from "dotenv"
+dotenv.config();
 
+import cors from 'cors'
+
+import express from 'express'
 import connect from './db.js'
 import { ObjectId } from 'mongodb'
+
+import auth from './auth';
+
 const app = express()
 const port = 3000
+
+app.use(cors());
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => { })
+
+
+app.post("/prijava", async (req, res) => {
+    let user = req.body;
+
+    try {
+        let result = await auth.prijavi(user.username, user.password);
+        res.json(result);
+    } catch (e) {
+        res.status(401).json({ erorr: e.message })
+    }
+})
+
+app.post("/registracija", async (req, res) => {
+    let user = req.body;
+
+    let id;
+    try {
+        id = await auth.registriraj(user);
+    }
+    catch (e) {
+        res.status(500).json({ error: e.message });
+    }
+
+    res.json({ id: id });
+
+})
 
 app.post("/iskustvo", async (req, res) => {
     let db = await connect("bolesti");
@@ -53,8 +90,6 @@ app.get("/iskustvo/:id", async (req, res) => {
         });
     }
 });
-
-
 
 
 
