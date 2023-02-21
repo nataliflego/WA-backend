@@ -18,6 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => { })
 
+// vrć middleware funkcije na rute [auth.verify]
 
 app.post("/prijava", async (req, res) => {
     let user = req.body;
@@ -57,6 +58,7 @@ app.post("/iskustvo", async (req, res) => {
         kljucnerijeci: kljucnerijeci
     });
     if (item) {
+
         res.json({
             status: "OK",
             message: `Item ${nazivbolesti} saved in DB`,
@@ -89,6 +91,30 @@ app.get("/iskustvo/:id", async (req, res) => {
             message: `Couldn't find item by id ${id}`,
         });
     }
+});
+
+
+app.get('/upisibolest', async (req, res) => {
+    let db = await connect("bolesti");
+    let term = req.query.term;
+    let reg = `/${term}/`;
+    console.log(reg)
+    let item = await db.collection("iskustva").find({ kljucnerijeci: { $regex: RegExp(term, 'i') } });
+    item = await item.toArray();
+    if (item) {
+        res.json({
+            status: "OK",
+            data: {
+                item: item,
+            },
+        });
+    } else {
+        res.json({
+            status: "Failed",
+            message: `Couldn't find item by term ${term}`,
+        });
+    }
+
 });
 
 
