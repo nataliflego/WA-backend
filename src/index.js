@@ -46,17 +46,37 @@ app.post("/registracija", async (req, res) => {
 
 })
 
+/* const MongoClient = require('mongodb').MongoClient; */
+app.get('/data', async (req, res) => {
+
+    let db = await connect("bolesti");
+    await db.collection("iskustva").find({}).toArray(function (err, result) {
+
+        if (err) throw err;
+        res.json(result);
+
+    });
+});
+
+// spremanje iskustva u bazu (Forma.vue)
 app.post("/iskustvo", async (req, res) => {
+    //spajanje baze
     let db = await connect("bolesti");
     let { nazivbolesti, lijek, mjesto, email, opis, kljucnerijeci } = req.body;
+
+    kljucnerijeci = [];
+
+    //dobivanje kolekcije
     let item = await db.collection("iskustva").insertOne({
-        nazivbolesti: nazivbolesti,
-        lijek: lijek,
-        mjesto: mjesto,
-        email: email,
-        opis: opis,
-        kljucnerijeci: kljucnerijeci
+        nazivbolesti: req.body.nazivbolesti,
+        lijek: req.body.lijek,
+        mjesto: req.body.mjesto,
+        email: req.body.email,
+        opis: req.body.opis,
+        kljucnerijeci: req.body.kljucnerijeci
+
     });
+
     if (item) {
 
         res.json({
@@ -78,13 +98,16 @@ app.get("/iskustvo/:id", async (req, res) => {
 
     let query = { _id: ObjectId(id) };
     let item = await db.collection("iskustva").findOne(query);
+    /*  res.setHeader('Content-Type', 'application/json'); */
     if (item) {
-        res.json({
-            status: "OK",
-            data: {
-                item: item,
-            },
-        });
+        res.setHeader('Content-Type', 'application/json');
+        res.send(JSON.stringify(item))
+        /* res.json({
+
+            
+            item: item,
+
+        }); */
     } else {
         res.json({
             status: "Failed",
@@ -93,20 +116,18 @@ app.get("/iskustvo/:id", async (req, res) => {
     }
 });
 
-
+// pretraga bolesti
 app.get('/upisibolest', async (req, res) => {
     let db = await connect("bolesti");
     let term = req.query.term;
     let reg = `/${term}/`;
     console.log(reg)
-    let item = await db.collection("iskustva").find({ kljucnerijeci: { $regex: RegExp(term, 'i') } });
+    let item = await db.collection("iskustva").find({ kljucnerijeci: { $regex: term, $options: 'i' } });
     item = await item.toArray();
     if (item) {
         res.json({
-            status: "OK",
-            data: {
-                item: item,
-            },
+            /*   status: "OK", */
+            item: item,
         });
     } else {
         res.json({
