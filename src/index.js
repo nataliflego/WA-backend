@@ -66,17 +66,26 @@ app.post("/iskustvo", async (req, res) => {
 
     kljucnerijeci = [];
 
-    //dobivanje kolekcije
+    nazivbolesti = req.body.nazivbolesti.toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
+    mjesto = req.body.mjesto.toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
+    opis = req.body.opis.toLowerCase().replace(/\b\w/g, (l) => l.toUpperCase());
+
+    let prvoslovoopisa = req.body.opis.charAt(0).toUpperCase();
+    let ostatakopisa = req.body.opis.substring(1);
+    let spojeno = prvoslovoopisa + ostatakopisa;
+
+    let danasnjidatum = new Date();
+    let formatirani = danasnjidatum.toLocaleDateString("hr-HR");
+
     let item = await db.collection("iskustva").insertOne({
-        nazivbolesti: req.body.nazivbolesti,
+        nazivbolesti: nazivbolesti,
         lijek: req.body.lijek,
-        mjesto: req.body.mjesto,
+        mjesto: mjesto,
         email: req.body.email,
-        opis: req.body.opis,
-        kljucnerijeci: req.body.kljucnerijeci
-
+        opis: spojeno,
+        kljucnerijeci: req.body.kljucnerijeci,
+        datum: formatirani
     });
-
     if (item) {
 
         res.json({
@@ -115,6 +124,54 @@ app.get("/iskustvo/:id", async (req, res) => {
         });
     }
 });
+
+//dobivanje svih komentara za određeno iskustvo
+app.get('/iskustvo/:experienceId/komentari', async (req, res) => {
+    let db = await connect("bolesti");
+    try {
+        const iskustvo = await db.collection('iskustva').findOne({ _id: ObjectId(req.params.experienceId) });
+        const komentari = await db.collection('komentari').find({ experienceId: req.params.experienceId }).toArray();
+        res.json(komentari);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error kod komentara' });
+    }
+});
+// dodavanje komentara
+app.post('/iskustvo/:experienceId/komentari', async (req, res) => {
+    let db = await connect("bolesti");
+    /*  console.log("spojena baza ", db); */
+    try {
+        const iskustvo = await db.collection('iskustva').findOne({ _id: ObjectId(req.params.experienceId) });
+        const newComment = {
+            experienceId: req.params.experienceId,
+            author: req.body.author,
+            text: req.body.text,
+            objavljeno: Date.now(),
+        };
+        const result = await db.collection('komentari').insertOne(newComment);
+        console.log("'Result': ", result)
+        /* res.json(result.ops[0]); */
+        res.json(result.insertedId);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: 'Server Error kod ubacivanja komentara' });
+    }
+});
+
+// brisanje komentara
+app.delete('/iskustvo/:experienceId/komentari/commentId', async (req, res) => {
+    let db = await connect("bolesti");
+    let experienceId = req.params.experienceId;
+    let commentId = req.params.commentId;
+
+    let rez = await db.collection('komentari').deleteOne({ _id: ObjectId(commentId) });
+    if (rez.deletedCount === 0) {
+        return res.status(404).json({ message: 'Comment not found' });
+    }
+    res.json({ message: `Komentar sa ID ${commentId} je obrisan.` });
+})
+
 
 // pretraga bolesti
 app.get('/upisibolest', async (req, res) => {
