@@ -160,16 +160,37 @@ app.post('/iskustvo/:experienceId/komentari', async (req, res) => {
 });
 
 // brisanje komentara
-app.delete('/iskustvo/:experienceId/komentari/commentId', async (req, res) => {
+app.delete('/komentari/:commentId', async (req, res) => {
     let db = await connect("bolesti");
-    let experienceId = req.params.experienceId;
+    /*   let experienceId = req.params.experienceId; */
     let commentId = req.params.commentId;
 
     let rez = await db.collection('komentari').deleteOne({ _id: ObjectId(commentId) });
     if (rez.deletedCount === 0) {
-        return res.status(404).json({ message: 'Comment not found' });
+        return res.status(404).json({ message: 'Komentar not found' });
     }
     res.json({ message: `Komentar sa ID ${commentId} je obrisan.` });
+})
+
+//update komentara
+app.put('/:commentId', async (req, res) => {
+    let db = await connect("bolesti");
+    let commentId = req.params.commentId;
+    let updatedComment = req.body.text;
+
+    try {
+        let rez = await db.collection('komentari').updateOne(
+            { _id: ObjectId(commentId) },
+            { $set: { text: updatedComment } }
+        );
+        if (rez.matchedCount === 0) {
+            return res.status(404).json({ message: "Komentar nije nađen" });
+        }
+        res.json({ message: `Komentar sa ID ${commentId} je ažuriran.` });
+    } catch (error) {
+        console.log("Error updating komentar sa servera: ", error);
+        return res.status(500).json({ message: "Internal server error" });
+    }
 })
 
 
