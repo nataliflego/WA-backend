@@ -22,12 +22,18 @@ app.get('/', (req, res) => { })
 
 app.post("/prijava", async (req, res) => {
     let user = req.body;
+    let username = user.username;
+    let password = user.password;
 
     try {
-        let result = await auth.prijavi(user.username, user.password);
+        let result = await auth.prijavi(username, password);
         res.json(result);
-    } catch (e) {
+    } /* catch (e) {
         res.status(401).json({ erorr: e.message })
+    } */
+    catch (error) {
+        console.error("Greška sa rute /prijava", error)
+        res.status(401).json({ error: "Prijava nije uspijela" });
     }
 })
 
@@ -38,7 +44,9 @@ app.post("/registracija", async (req, res) => {
     try {
         id = await auth.registriraj(user);
     }
-    catch (e) {
+
+    catch (error) {
+        console.error("Greška sa rute /registracija", error);
         res.status(500).json({ error: e.message });
     }
 
@@ -58,8 +66,8 @@ app.get('/data', async (req, res) => {
     });
 });
 
-// spremanje iskustva u bazu (Forma.vue)
-app.post("/iskustvo", async (req, res) => {
+// spremanje iskustva u bazu (Forma.vue) -> Dodajiskustvo.vue
+app.post("/iskustvo", [auth.verify], async (req, res) => {
     //spajanje baze
     let db = await connect("bolesti");
     let { nazivbolesti, lijek, mjesto, email, opis, kljucnerijeci } = req.body;
@@ -138,7 +146,7 @@ app.get('/iskustvo/:experienceId/komentari', async (req, res) => {
     }
 });
 // dodavanje komentara
-app.post('/iskustvo/:experienceId/komentari', async (req, res) => {
+app.post('/iskustvo/:experienceId/komentari', [auth.verify], async (req, res) => {
     let db = await connect("bolesti");
     /*  console.log("spojena baza ", db); */
     try {
@@ -160,7 +168,7 @@ app.post('/iskustvo/:experienceId/komentari', async (req, res) => {
 });
 
 // brisanje komentara
-app.delete('/komentari/:commentId', async (req, res) => {
+app.delete('/komentari/:commentId', [auth.verify], async (req, res) => {
     let db = await connect("bolesti");
     /*   let experienceId = req.params.experienceId; */
     let commentId = req.params.commentId;
@@ -173,7 +181,7 @@ app.delete('/komentari/:commentId', async (req, res) => {
 })
 
 //update komentara
-app.put('/:commentId', async (req, res) => {
+app.put('/:commentId', [auth.verify], async (req, res) => {
     let db = await connect("bolesti");
     let commentId = req.params.commentId;
     let updatedComment = req.body.text;
@@ -200,7 +208,7 @@ app.get('/upisibolest', async (req, res) => {
     let term = req.query.term;
     let reg = `/${term}/`;
     console.log(reg)
-    let item = await db.collection("iskustva").find({ kljucnerijeci: { $regex: term, $options: 'i' } });
+    let item = await db.collection("iskustva").find({ nazivbolesti: { $regex: term, $options: 'i' } });
     item = await item.toArray();
     if (item) {
         res.json({

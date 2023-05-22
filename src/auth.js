@@ -10,14 +10,13 @@ import jwt from "jsonwebtoken"
 
 export default {
     async registriraj(podacikorisnika) {
-        /* console.log('tu smo', podacikorisnika); */
+        /*  console.log('Podaci korisnika: ', podacikorisnika); */
         let db = await connect();
 
         let doc = {
             ime: podacikorisnika.ime,
             username: podacikorisnika.username, // to je EMAIL
             password: await bcrypt.hash(podacikorisnika.password, 8)
-            /* grad: podacikorisnika.grad */
         }
         try {
             let result = await db.collection('korisnici').insertOne(doc);
@@ -28,42 +27,49 @@ export default {
             if (e.code == 11000) {
                 throw new Error("Korisnik već postoji")
             }
+            throw e;
             /* console.error(e); */
         }
     },
     async prijavi(username, password) {
-        let db = await connect()
-        let user = await db.collection("korisnici").findOne({ username: username })
+        try {
+            let db = await connect()
+            let user = await db.collection("korisnici").findOne({ username: username })
 
-        if (user && user.password && (await bcrypt.compare(password, user.password))) {
-            delete user.password
-            let token = jwt.sign(user, process.env.JWT_TAJNA, {
-                algorithm: 'HS512',
-                expiresIn: '1 week'
-            });      //za izdavanje novog tokena
-            return {
-                token,
-                username: user.username
-            };
-        } else {
-            throw new Error("Prijava nije uspijela")
+            if (user && user.password && (await bcrypt.compare(password, user.password))) {
+                delete user.password
+                let token = jwt.sign(user, process.env.JWT_TAJNA, {
+                    algorithm: 'HS512',
+                    expiresIn: '1 week'
+                });      //za izdavanje novog tokena
+                return {
+                    token,
+                    username: user.username
+                };
+            } else {
+                throw new Error("Prijava nije uspijela")
+            }
+        } catch (error) {
+            console.error("Greska prilikom prijavi() na serveru", error);
+            throw new Error("Prijava nije uspijela: Došlo je do pogreške na serveru.");
         }
     },
     verify(req, res, next) {
-        try {
-            let authorization = req.headers.authorization.split(' ');
-            let type = authorization[0];
-            let token = authorization[1];
-
-            if (type !== 'Bearer') {
-                return res.status(401).send();
-
-            } else {
-                req.jwt = jwt.verify(token, process.env.JWT_TAJNA);
-                return next();
+        if (req.headers['authorization']) {
+            try {
+                let authorization = req.headers['authorization'].split(' ');
+                if (authorization[0] !== 'Bearer') {
+                    return res.status(401).send();
+                } else {
+                    let token = authorization[1];
+                    req.jwt = jwt.verify(authorization[1], process.env.JWT_TAJNA);
+                    return next();
+                }
+            } catch (err) {
+                return res.status(403).send(); // HTTP not-authorized
             }
-        } catch (e) {
-            return res.status(401).send();
+        } else {
+            return res.status(401).send();// HTTP invalid request
         }
     }
 };
