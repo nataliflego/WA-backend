@@ -40,17 +40,18 @@ app.post("/prijava", async (req, res) => {
 app.post("/registracija", async (req, res) => {
     let user = req.body;
 
-    let id;
+    let result;
     try {
-        id = await auth.registriraj(user);
+        result = await auth.registriraj(user);
     }
 
     catch (error) {
         console.error("Greška sa rute /registracija", error);
-        res.status(500).json({ error: e.message });
+        res.status(500).json({ error: error.message });
     }
-
-    res.json({ id: id });
+    /* const { id, username, token } = result; */
+    const { username } = result;
+    res.json({ result, username });
 
 })
 
@@ -150,13 +151,25 @@ app.post('/iskustvo/:experienceId/komentari', [auth.verify], async (req, res) =>
     let db = await connect("bolesti");
     /*  console.log("spojena baza ", db); */
     try {
+        const author = await db.collection('korisnici').findOne({ _id: ObjectId(req.user._id) });
         const iskustvo = await db.collection('iskustva').findOne({ _id: ObjectId(req.params.experienceId) });
         const newComment = {
             experienceId: req.params.experienceId,
-            author: req.body.author,
+            author: req.user._id,
             text: req.body.text,
             objavljeno: Date.now(),
+            authorName: req.user.username,
         };
+        //dohvati autora iz prve zbirke (korisnici) na temelju jedinstvenog identifikatora:
+        /* const author = await db.collection('korisnici').findOne({ _id: ObjectId(req.user._id) }); */
+        /*  if (!author) {
+             console.log("autor: ", author);
+             throw new Error('Author nije nadjen');
+         } else {
+ 
+             newComment.authorName = author.username;
+         } */
+
         const result = await db.collection('komentari').insertOne(newComment);
         console.log("'Result': ", result)
         /* res.json(result.ops[0]); */

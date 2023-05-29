@@ -21,8 +21,26 @@ export default {
         try {
             let result = await db.collection('korisnici').insertOne(doc);
             if (result && result.insertedId) {
-                return result.insertedId;
+
+                /*  return { id: result.insertedId, username: doc.username } */
+                let user = {
+                    id: result.insertedId,
+                    username: doc.username
+                }
+                let token = jwt.sign(user, process.env.JWT_TAJNA, {
+                    algorithm: 'HS512',
+                    expiresIn: '1 week'
+                });
+                user.token = token;
+                return {
+                    user, username: user.username
+                    /*    token,
+                       id: user.id,
+                       username: user.username */
+                };
             }
+
+
         } catch (e) {
             if (e.code == 11000) {
                 throw new Error("Korisnik već postoji")
@@ -44,6 +62,7 @@ export default {
                 });      //za izdavanje novog tokena
                 return {
                     token,
+                    id: user._id,
                     username: user.username
                 };
             } else {
@@ -59,16 +78,23 @@ export default {
             try {
                 let authorization = req.headers['authorization'].split(' ');
                 if (authorization[0] !== 'Bearer') {
+                    console.log("Nije 'Bearer'")
                     return res.status(401).send();
+
                 } else {
                     let token = authorization[1];
-                    req.jwt = jwt.verify(authorization[1], process.env.JWT_TAJNA);
+                    /*  req.jwt = jwt.verify(authorization[1], process.env.JWT_TAJNA); */
+                    /*   req.user = jwt.verify(token, process.env.JWT_TAJNA); */
+                    let decoded = jwt.verify(token, process.env.JWT_TAJNA);
+                    req.user = decoded;
                     return next();
                 }
             } catch (err) {
+                console.log("Nisi ovlašten")
                 return res.status(403).send(); // HTTP not-authorized
             }
         } else {
+            console.log("Neispravan zahtjev")
             return res.status(401).send();// HTTP invalid request
         }
     }
