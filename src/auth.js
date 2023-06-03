@@ -20,26 +20,25 @@ export default {
         }
         try {
             let result = await db.collection('korisnici').insertOne(doc);
-            if (result && result.insertedId) {
-
-                /*  return { id: result.insertedId, username: doc.username } */
-                let user = {
-                    id: result.insertedId,
-                    username: doc.username
-                }
-                let token = jwt.sign(user, process.env.JWT_TAJNA, {
-                    algorithm: 'HS512',
-                    expiresIn: '1 week'
-                });
-                user.token = token;
-                return {
-                    user, username: user.username
-                    /*    token,
-                       id: user.id,
-                       username: user.username */
-                };
-            }
-
+            /*  if (result && result.insertedId) {
+ 
+                 /*  return { id: result.insertedId, username: doc.username } */
+            /*        let user = {
+                        id: result.insertedId,
+                        username: doc.username
+                    }
+                    let token = jwt.sign(user, process.env.JWT_TAJNA, {
+                        algorithm: 'HS512',
+                        expiresIn: '1 week'
+                    });
+                    user.token = token;
+                    return {
+                        user, username: user.username
+                        /*    token,
+                           id: user.id,
+                           username: user.username */
+            /*           };
+                   } */
 
         } catch (e) {
             if (e.code == 11000) {
@@ -83,9 +82,9 @@ export default {
 
                 } else {
                     let token = authorization[1];
-                    /*  req.jwt = jwt.verify(authorization[1], process.env.JWT_TAJNA); */
-                    /*   req.user = jwt.verify(token, process.env.JWT_TAJNA); */
-                    let decoded = jwt.verify(token, process.env.JWT_TAJNA);
+                    /* req.jwt = jwt.verify(authorization[1], process.env.JWT_TAJNA);
+                    */ /*  req.user = jwt.verify(token, process.env.JWT_TAJNA);
+                     */    let decoded = jwt.verify(token, process.env.JWT_TAJNA);
                     req.user = decoded;
                     return next();
                 }
@@ -97,5 +96,17 @@ export default {
             console.log("Neispravan zahtjev")
             return res.status(401).send();// HTTP invalid request
         }
+        /* 
+                const token = req.headers['authorization'];
+                if (!token) {
+                    return res.status(401).json({ error: 'Token nije nađen' });
+                }
+                jwt.verify(token, 'JWT_TAJNA', (err, decoded) => {
+                    if (err) {
+                        return res.status(401).json({ error: 'Nedobar token' });
+                    }
+                    req.username = decoded.username;
+                    next();
+                })  */
     }
 };

@@ -40,9 +40,10 @@ app.post("/prijava", async (req, res) => {
 app.post("/registracija", async (req, res) => {
     let user = req.body;
 
-    let result;
+    /*  let result; */
+    let id;
     try {
-        result = await auth.registriraj(user);
+        id = await auth.registriraj(user);
     }
 
     catch (error) {
@@ -50,8 +51,9 @@ app.post("/registracija", async (req, res) => {
         res.status(500).json({ error: error.message });
     }
     /* const { id, username, token } = result; */
-    const { username } = result;
-    res.json({ result, username });
+    /*  const { username } = result; */
+    /*  res.json({ result, username }); */
+    res.json({ id: id });
 
 })
 
