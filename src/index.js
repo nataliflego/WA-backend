@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb'
 import auth from './auth';
 
 const app = express()
-const port = 3000
+const port = 4000
 
 app.use(cors());
 
