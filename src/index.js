@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
     res.setHeader(
         "Access-Control-Allow-Origin",
-        "http://127.0.0.1:5173"
+        "https://bolestizdravlje.onrender.com"
     );
     res.setHeader(
         "Access-Control-Allow-Methods",
