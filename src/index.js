@@ -23,8 +23,12 @@ app.use(express.urlencoded({ extended: true }));
 } */
 
 
+
 // Set middleware of CORS 
 app.use((req, res, next) => {
+
+    headers.append('Access-Control-Allow-Origin', 'https://wabackend.onrender.com');
+    headers.append('Access-Control-Allow-Credentials', 'true');
     res.setHeader("Access-Control-Allow-Origin", "*");
     res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS,CONNECT,TRACE");
     res.setHeader("Access-Control-Allow-Headers",
