@@ -12,14 +12,16 @@ import auth from './auth';
 const app = express()
 const port = 4000 || process.env.PORT
 
-const corsOptions = {
+/* const corsOptions = {
     origin: 'https://bolestizdravlje.onrender.com',
 
 }
-app.use(cors(corsOptions));
+app.use(cors(corsOptions)); */
 
 
-app.use(cors(/* corsOptions */)) // Use this after the variable declaration
+app.use(cors({
+    origin: '*'
+})) // Use this after the variable declaration
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
