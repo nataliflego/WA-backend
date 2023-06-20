@@ -10,7 +10,7 @@ import { ObjectId } from 'mongodb'
 import auth from './auth';
 
 const app = express()
-const port = 4000 || process.env.PORT
+const port = process.env.PORT || 4000
 
 /* const corsOptions = {
     origin: 'https://bolestizdravlje.onrender.com',
