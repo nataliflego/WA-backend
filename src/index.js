@@ -24,6 +24,11 @@ app.use(cors(/* corsOptions */)) // Use this after the variable declaration
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(function (req, res, next) {
+    res.header("Access-Control-Allow-Origin", "https://bolestizdravlje.onrender.com"); // update to match the domain you will make the request from
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    next();
+});
 
 // Set middleware of CORS 
 /* app.use((req, res, next) => {
