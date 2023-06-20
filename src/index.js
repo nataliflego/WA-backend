@@ -12,15 +12,15 @@ import auth from './auth';
 const app = express()
 const port = 4000 || process.env.PORT
 
-const corsOptions = {
+/* const corsOptions = {
     origin: '*',
     credentials: true,            //access-control-allow-credentials:true
     optionSuccessStatus: 200,
-}
+} */
 /* app.use(cors()); */
 
 
-app.use(cors(corsOptions)) // Use this after the variable declaration
+app.use(cors(/* corsOptions */)) // Use this after the variable declaration
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -45,7 +45,7 @@ app.get('/', (req, res) => { })
 
 // vrć middleware funkcije na rute [auth.verify]
 
-app.post("/prijava", cors(), async (req, res) => {
+app.post("/prijava", async (req, res) => {
 
     let user = req.body;
     let username = user.username;
@@ -63,7 +63,7 @@ app.post("/prijava", cors(), async (req, res) => {
     }
 })
 
-app.post("/registracija", cors(), async (req, res) => {
+app.post("/registracija", async (req, res) => {
     let user = req.body;
 
     /*  let result; */
@@ -84,7 +84,7 @@ app.post("/registracija", cors(), async (req, res) => {
 })
 
 /* const MongoClient = require('mongodb').MongoClient; */
-app.get('/data', cors(), async (req, res) => {
+app.get('/data', async (req, res) => {
 
     let db = await connect("bolesti");
     await db.collection("iskustva").find({}).toArray(function (err, result) {
@@ -96,7 +96,7 @@ app.get('/data', cors(), async (req, res) => {
 });
 
 // spremanje iskustva u bazu (Forma.vue) -> Dodajiskustvo.vue
-app.post("/iskustvo", cors(), [auth.verify], async (req, res) => {
+app.post("/iskustvo", [auth.verify], async (req, res) => {
     //spajanje baze
     let db = await connect("bolesti");
     let { nazivbolesti, lijek, mjesto, email, opis, kljucnerijeci } = req.body;
@@ -137,7 +137,7 @@ app.post("/iskustvo", cors(), [auth.verify], async (req, res) => {
     }
 });
 
-app.get("/iskustvo/:id", cors(), async (req, res) => {
+app.get("/iskustvo/:id", async (req, res) => {
     let db = await connect("bolesti");
     let id = req.params.id;
     console.log(id);
@@ -163,7 +163,7 @@ app.get("/iskustvo/:id", cors(), async (req, res) => {
 });
 
 //dobivanje svih komentara za određeno iskustvo
-app.get('/iskustvo/:experienceId/komentari', cors(), async (req, res) => {
+app.get('/iskustvo/:experienceId/komentari', async (req, res) => {
     let db = await connect("bolesti");
     try {
         const iskustvo = await db.collection('iskustva').findOne({ _id: ObjectId(req.params.experienceId) });
@@ -175,7 +175,7 @@ app.get('/iskustvo/:experienceId/komentari', cors(), async (req, res) => {
     }
 });
 // dodavanje komentara
-app.post('/iskustvo/:experienceId/komentari', cors(), [auth.verify], async (req, res) => {
+app.post('/iskustvo/:experienceId/komentari', [auth.verify], async (req, res) => {
     let db = await connect("bolesti");
     /*  console.log("spojena baza ", db); */
     try {
@@ -209,7 +209,7 @@ app.post('/iskustvo/:experienceId/komentari', cors(), [auth.verify], async (req,
 });
 
 // brisanje komentara
-app.delete('/komentari/:commentId', cors(), [auth.verify], async (req, res) => {
+app.delete('/komentari/:commentId', [auth.verify], async (req, res) => {
     let db = await connect("bolesti");
     /*   let experienceId = req.params.experienceId; */
     let commentId = req.params.commentId;
@@ -222,7 +222,7 @@ app.delete('/komentari/:commentId', cors(), [auth.verify], async (req, res) => {
 })
 
 //update komentara
-app.put('/:commentId', cors(), [auth.verify], async (req, res) => {
+app.put('/:commentId', [auth.verify], async (req, res) => {
     let db = await connect("bolesti");
     let commentId = req.params.commentId;
     let updatedComment = req.body.text;
@@ -244,7 +244,7 @@ app.put('/:commentId', cors(), [auth.verify], async (req, res) => {
 
 
 // pretraga bolesti
-app.get('/upisibolest', cors(), async (req, res) => {
+app.get('/upisibolest', async (req, res) => {
 
     console.log('Request received for /upisibolest');
     let db = await connect("bolesti");
